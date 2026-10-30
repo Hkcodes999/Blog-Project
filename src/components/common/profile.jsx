@@ -22,7 +22,7 @@ const Profile = ({ size = 40 }) => {
     <div className="relative">
       <div
         style={{ height: `${size}px`, width: `${size}px` }}
-        className="rounded-full overflow-hidden flex items-center justify-center  text-white shadow-sm ring-2 ring-white/80 transition-transform duration-200"
+        className="rounded-full overflow-hidden flex items-center justify-center text-white shadow-sm ring-2 ring-white/80 transition-transform duration-200"
       >
         {previewProfile ? (
           <img
@@ -32,7 +32,7 @@ const Profile = ({ size = 40 }) => {
           />
         ) : (
           <span
-            className="font-semibold select-none font-[font1] bg-[#FF6F3A]"
+            className="font-semibold select-none font-[font1] bg-[#FF6F3A] w-full h-full items-center justify-center flex"
             style={{ fontSize: `${Math.max(12, Math.round(size * 0.35))}px` }}
           >
             {initials}

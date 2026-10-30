@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import service from "../appwrite/confg";
 import parse from "html-react-parser";
-import Authcontainer from "../components/auth/authcontainer";
+import Errorcontainer from "../components/common/errorcontainer";
 import Button from "../components/common/button";
 import { useSelector } from "react-redux";
 import { Eye, Clock9, Trash, Pen, MoveRight, Server, Lock } from "lucide-react";
@@ -19,6 +19,21 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
+export const getReadingTime = (content) => {
+  if (!content) return "1 min read";
+
+  // 1. Strip HTML tags (e.g. <p>, <strong>, etc.)
+  const plainText = content.replace(/<[^>]*>/g, " ").trim();
+
+  // 2. Count words by splitting on whitespace
+  const words = plainText.split(/\s+/).filter(Boolean).length;
+
+  // 3. Calculate minutes at 200 WPM (minimum 1 min)
+  const minutes = Math.max(1, Math.ceil(words / 200));
+
+  return `${minutes} min read`;
+};
+
 const Post = () => {
   const userData = useSelector((state) => state.auth.userData);
   const authstatus = useSelector((state) => state.auth.status);
@@ -33,15 +48,15 @@ const Post = () => {
       : false;
   const loadingRef = useRef();
   const articleRef = useRef();
-  const loading = !post || !userImg;
+  const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
-  const [errorType, setErrortype] = useState();
 
   useEffect(() => {
     // 1. Reset state immediately so loading skeleton shows and old post disappears
     setPost(null);
     setUserimg(null);
     setNotfound(false);
+    setLoading(true);
 
     // 2. Scroll to top immediately
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -62,7 +77,7 @@ const Post = () => {
 
         // Fetch avatar and more posts concurrently
         const [profile, postsData] = await Promise.all([
-          service.getFilePreview(postData.userAvatar),
+          postData.userAvatar ? service.getFilePreview(postData.userAvatar) : null,
           posts.length === 0 ? service.getPosts() : Promise.resolve(null),
         ]);
 
@@ -75,6 +90,8 @@ const Post = () => {
       } catch (error) {
         console.log("Fetch error:", error);
         setNotfound(true);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -82,6 +99,16 @@ const Post = () => {
   }, [slug, navigate]);
 
   console.log(post);
+
+  const initials = post?.userName
+    ? post.userName
+        .trim()
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "U";
 
   const handleDelete = async () => {
     try {
@@ -104,7 +131,7 @@ const Post = () => {
       gsap.from(articleRef.current.children, {
         autoAlpha: 0,
         y: 20,
-        duration: 0.7,
+        duration: 1,
         stagger: 0.08,
         filter: "blur(6px)",
         ease: "power2.out",
@@ -116,7 +143,7 @@ const Post = () => {
 
   if (notFound) {
     return (
-      <Authcontainer
+      <Errorcontainer
         notFound={notFound}
         icon={"notFound"}
         message="Post not found"
@@ -228,11 +255,18 @@ const Post = () => {
 
             {/* Author + meta row */}
             <div className="flex items-center gap-4 pt-1">
-              <img
-                className="rounded-full h-11 w-11 object-cover ring-2 ring-[#FF5617]/20"
-                src={userImg}
-                alt=""
-              />
+              {userImg ? (
+                <img
+                  className="rounded-full h-11 w-11 object-cover ring-2 ring-[#FF5617]/20"
+                  src={userImg}
+                  alt={post.userName}
+                  onError={() => setUserimg(null)} // fallback to initials if image URL fails
+                />
+              ) : (
+                <span className="font-semibold select-none font-[font1] bg-[#FF6F3A] w-[42px] h-[42px] items-center justify-center flex text-base rounded-full text-white">
+                  {initials}
+                </span>
+              )}
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-semibold text-gray-800">
                   By {post.userName}
@@ -247,8 +281,9 @@ const Post = () => {
                     })}
                   </span>
                   <span className="w-px h-3 bg-gray-300" />
-                  <span className="flex items-center gap-1">
-                    <Eye size={12} />2 min read
+                  <span className="flex items-center gap-1 justify-center">
+                    <Eye size={15} />
+                    <h4>{getReadingTime(post.content)}</h4>
                   </span>
                 </div>
               </div>

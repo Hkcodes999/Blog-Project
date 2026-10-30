@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Postcard from "../components/post/postcard";
 import service from "../appwrite/confg";
-import Authcontainer from "../components/auth/authcontainer";
+import Errorcontainer from "../components/common/errorcontainer";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -9,8 +9,8 @@ import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
 const PostCardSkeleton = () => (
+
   <div
-  ref={postsSkeletonRef}
     style={{ height: "500px" }}
     className="w-full max-w-[480px] rounded-lg flex flex-col border border-gray-200 shrink-0 overflow-hidden select-none bg-white shadow-xs"
   >
@@ -92,7 +92,7 @@ const Allpostpage = () => {
         gsap.from(card, {
           autoAlpha: 0,
           y: 30,
-          duration: 0.8,
+          duration: 1,
           filter: "blur(6px)",
           delay: i < 3 ? i * 0.1 : 0, // stagger first 3 on load
           ease: "power2.out",
@@ -107,8 +107,10 @@ const Allpostpage = () => {
     { dependencies: [post, loading] },
   );
 
+  
+
   return (
-    <Authcontainer error={error} onRetry={fetchData}>
+    <Errorcontainer error={error} onRetry={fetchData}>
       <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f3f4f6">
         <div className="min-h-[90vh] w-full p-5 py-6 flex gap-8 flex-wrap items-center flex-col mb-4">
           <div ref={textRef}>
@@ -119,9 +121,10 @@ const Allpostpage = () => {
 
           <div className="w-full flex items-center justify-center">
             {loading ? (
-              <div className="flex flex-wrap items-center justify-center gap-8 w-full max-w-9xl">
+              <div className="flex flex-wrap items-center justify-center gap-8 w-full max-w-10xl">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <PostCardSkeleton key={index} />
+                  
                 ))}
               </div>
             ) : post?.documents?.length === 0 ? (
@@ -141,7 +144,7 @@ const Allpostpage = () => {
           </div>
         </div>
       </SkeletonTheme>
-    </Authcontainer>
+    </Errorcontainer>
   );
 };
 

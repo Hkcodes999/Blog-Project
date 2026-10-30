@@ -7,29 +7,31 @@ import "react-loading-skeleton/dist/skeleton.css";
 
 const Postcard = ({ post, height = "500px", sizeMove = false }) => {
   const [postData] = useState(post);
-  const [imageData, setimageData] = useState(null);
+  const [profileImage, setProfileImg] = useState(null);
   const [postimage, setPostimage] = useState(null);
-
 
   // loading = true while either image hasn't resolved yet
   const loading = !postData;
 
-  console.log(post.userAvatar)
-
   useEffect(() => {
     const fetchimages = async () => {
+      if (!post?.userAvatar) {
+        setProfileImg(null);
+        return;
+      }
       try {
-        const profile = await service.getFilePreview(post.userAvatar)
-        console.log(profile)
-        setimageData(profile);
+        const profile = service.getFilePreview(post.userAvatar);
+        setProfileImg(profile);
       } catch (error) {
         console.log(error);
+        setProfileImg(null);
       }
     };
 
     const postImages = async () => {
+      if (!postData?.image) return;
       try {
-        const images = await service.getFilePreview(postData.image);
+        const images = service.getFilePreview(postData.image);
         setPostimage(images);
       } catch (error) {
         console.log(error);
@@ -38,7 +40,17 @@ const Postcard = ({ post, height = "500px", sizeMove = false }) => {
 
     postImages();
     fetchimages();
-  }, []);
+  }, [post?.userAvatar, postData?.image]);
+
+  const initials = postData?.userName
+    ? postData.userName
+        .trim()
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "U";
 
 
   return (
@@ -80,13 +92,20 @@ const Postcard = ({ post, height = "500px", sizeMove = false }) => {
                   <div className="flex items-center justify-center gap-3">
                     {loading ? (
                       <Skeleton circle width={40} height={40} />
-                    ) : (
+                    ) : profileImage ? (
                       <img
                         className="h-10 w-10 rounded-full object-cover select-none pointer-events-none"
-                        src={imageData}
+                        src={profileImage}
                         alt="Profile img"
+                        onError={() => setProfileImg(null)}
                         draggable="false"
                       />
+                    ) : (
+                      <span
+                        className="font-semibold select-none font-[font1] bg-[#FF6F3A] text-white text-sm w-10 h-10 items-center justify-center flex rounded-full shrink-0"
+                      >
+                        {initials}
+                      </span>
                     )}
                     <h3>
                       {loading ? <Skeleton width={80} /> : postData?.userName}
@@ -102,6 +121,7 @@ const Postcard = ({ post, height = "500px", sizeMove = false }) => {
                 {/* Title */}
                 <h2 className="text-xl capitalize font-bold line-clamp-2">
                   {loading ? <Skeleton width="80%" /> : postData?.title}
+                  
                 </h2>
 
                 {/* Content preview */}
