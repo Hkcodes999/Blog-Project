@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+}
+
+@font-face {
+    font-family: font1;
+    src: url(./assets/font/Montreal\ Serial.ttf);
+}
+
+.scroll-container{
+    scrollbar-gutter: stable;
+}
+
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #e8784f;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
